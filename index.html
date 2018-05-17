@@ -91,13 +91,44 @@
         class VisitIncrementor {
 
           constructor() {
-            this.data = {
-              rate: 1
+            this.rate =  1;
+            this.value = 0;
+            this.multiplier = 1.07;
+            this.costBase = 10;
+            this.cost = this.costBase;
+          }
+
+          calculateNext() {
+            this.cost = this.costBase * Math.pow(this.multiplier, this.value);
+          }
+
+          buy(model, amount = 1) {
+            if (amount == 1 || !this.value) {
+              if(model.visitors.count < this.cost) return false;
+              model.visitors.add(-this.cost);
+              this.value++;
+              this.calculateNext();
+              return true;
+            } else if(amount > 1) {
+              const r = this.multiplier;
+              const pluralCost = this.costBase * Math.pow(r, this.value) * ( Math.pow(r, amount)  - 1) / (r - 1);
+              if(model.visitors.count < pluralCost) return false;
+              model.visitors.add(-pluralCost);
+              this.value += amount;
+              this.calculateNext();
+              return true;
             }
+            return false;
+          }
+
+          maxBuy(income) {
+            const ll = (income * (r - 1) / (this.costBase * Math.pow(this.multiplier, this.value))) + 1;
+            const maxBuy = Math.floor(Math.log(ll) / Math.log(this.multiplier));
+            return maxBuy;
           }
 
           update(model) {
-
+            model.visitors.add(this.value * this.rate); // Linear grow
           }
         }
 
@@ -129,6 +160,26 @@
 
         }
 
+        class WOMOption {
+
+
+            constructor($element, model) {
+              this.value = new VisitIncrementor();
+              this.$element = $element;
+              $('button', this.$element).click(() => {
+                if(this.value.buy(model, 1))
+                this.updateCost();
+              });
+              this.$cost = $('.cost', this.$element);
+              this.updateCost();
+              this.update = this.value.update.bind(this.value);
+            }
+
+            updateCost() {
+              this.$cost.text(Math.ceil(this.value.cost));
+            }
+        }
+
         class Prehistory extends Phase {
 
           constructor($element) {
@@ -140,8 +191,11 @@
           }
 
           notifyVisitors(count) {
-            if(!this.$wordOfMouth && count >= 10) {
-
+            if(!this.wordOfMouth && count >= 10) {
+              $('.automation', this.$element).show();
+              const $wordOfMouth = $('.word-of-mouth', this.$element);
+              this.wordOfMouth = new WOMOption($wordOfMouth, this.model);
+              this.incrementors.push(this.wordOfMouth);
             }
           }
 
@@ -170,7 +224,7 @@
         class Visitors {
 
           constructor(){
-            this.element = $('.visitors');
+            this.$element = $('.visitors');
             this.count = 0;
             this.iCount = 0;
           }
@@ -179,7 +233,7 @@
             this.count += count;
             const oldCount = this.iCount;
             this.iCount = Math.floor(this.count);
-            if(oldCount !== this.iCount) this.$visitors.text(this.iCount);
+            if(oldCount !== this.iCount) this.$element.text(this.iCount);
           }
 
         }
@@ -257,12 +311,18 @@
     <h1>Prehistoric Phase</h1>
     <p>You write your first html code</p>
     <a href="#" class="visit">Click here</a> .
+    <div class="automation" style="display:none">
+      <hr  />
+      <h2>Referrals</h2>
+      <div class="word-of-mouth">Word of mouth: <button class="oldButton">+</button> : Requires <span class="cost">10</span> visitors. </div>
+    </div>
     <hr/>
     <div>This is your footer.</div>
   </div>
   <div class="container phase" id="hrey" style="background-color: #CECECE;font-family:times">
     <h1>Hrey</h1>
     <a href="#">Click here</a> for no reason.
+
     <hr/>
 A Footer <span class="odometer" id="odometer1">0</span>
 
