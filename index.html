@@ -10,10 +10,15 @@
 
   <style type="text/css">
   .container {
-    border-radius: 5px;
-    box-shadow: 0 2px 4px 0 rgba(0,0,0,0.16),0 2px 10px 0 rgba(0,0,0,0.12)!important;
-    min-height: 230px;
-    margin-bottom: 5px;
+  }
+
+  .phase {
+    margin-top: 15px;
+    display: none;
+      border-radius: 5px;
+      box-shadow: 0 2px 4px 0 rgba(0,0,0,0.16),0 2px 10px 0 rgba(0,0,0,0.12)!important;
+      min-height: 230px;
+      margin-bottom: 5px;
   }
 
   #prehistoric {
@@ -80,25 +85,189 @@
       var odometer = new Odometer({ el: $('#odometer2')[0], theme: 'train-station', value : '0' });
       odometer.render();
       odometer.update(1230000);
+
+      (function() {
+
+        class VisitIncrementor {
+
+          constructor() {
+            this.data = {
+              rate: 1
+            }
+          }
+
+          update(model) {
+
+          }
+        }
+
+        class Phase {
+          constructor($element) {
+            this.$element = $element;
+            this.incrementors = [];
+          }
+
+          notifyVisitors(count) {
+
+          }
+
+          toggle(state) {
+            const vis = this.$element.is(':visible');
+            if(state !== undefined) {
+              if(state === vis) { return; }
+              this.$element.toggle();
+              return;
+            }
+            this.$element.toggle();
+          }
+
+          update(ticks) {
+            this.incrementors.forEach(incr => {
+              incr.update(this.model);
+            });
+          }
+
+        }
+
+        class Prehistory extends Phase {
+
+          constructor($element) {
+            super($element);
+            $('.visit', $element).click(() => {
+              if(!this.model) { return; }
+              this.model.addVisitor();
+            });
+          }
+
+          notifyVisitors(count) {
+            if(!this.$wordOfMouth && count >= 10) {
+
+            }
+          }
+
+        }
+        class HreyPhase extends Phase {
+          constructor($element) {
+            super($element);
+          }
+        }
+        class JustNoPhase extends Phase {
+          constructor($element) {
+            super($element);
+          }
+        }
+        class FuglyEraPhase extends Phase {
+          constructor($element) {
+            super($element);
+          }
+        }
+        class TableGalorePhase extends Phase {
+          constructor($element) {
+            super($element);
+          }
+        }
+
+        class Visitors {
+
+          constructor(){
+            this.element = $('.visitors');
+            this.count = 0;
+            this.iCount = 0;
+          }
+
+          add(count ) {
+            this.count += count;
+            const oldCount = this.iCount;
+            this.iCount = Math.floor(this.count);
+            if(oldCount !== this.iCount) this.$visitors.text(this.iCount);
+          }
+
+        }
+
+        class Frame {
+          constructor(model) {
+            this.time = 0;
+            this.model =  model;
+          }
+
+          cycle(timestamp) {
+            if (!this.time) { this.time = timestamp; }
+            const progress = timestamp - this.time;
+            if(progress > 1000) {
+              this.time = this.time + 1000;
+              if (this.model.phase) this.model.phase.update(1);
+            }
+            window.requestAnimationFrame(this.cycle.bind(this));
+          }
+
+          start() {
+              window.requestAnimationFrame(this.cycle.bind(this));
+          }
+
+
+        }
+
+        class Model {
+          constructor() {
+            this.phases = [];
+            this.phase = undefined;
+            this.visitors = new Visitors();
+            this.renown = 0;
+            this.frame = new Frame(this);
+          }
+
+          addVisitor(count = 1) {
+            const oldVal = this.visitors.iCount;
+            this.visitors.add(count);
+            if(oldVal !== this.visitors.iCount) {
+              if( this.phase) { this.phase.notifyVisitors(this.visitors.count); }
+
+            }
+          }
+
+          addPhase(phase) {
+            this.phases.push(phase);
+            phase.model  = this;
+            const currentPhase = this.phases.length === 1;
+            phase.toggle(currentPhase);
+            if (currentPhase) { this.phase = phase; }
+          }
+
+        }
+        const model = new Model();
+
+
+
+        model.addPhase(new Prehistory($('#prehistoric')));
+        model.addPhase(new HreyPhase($('#hrey')));
+        model.addPhase(new JustNoPhase($('#justno')));
+        model.addPhase(new FuglyEraPhase($('#fugly-era')));
+        model.addPhase(new TableGalorePhase($('#table-galore')));
+        model.frame.start();
+      })();
+
     });
+
+
     </script>
 </head>
 
 <body>
-  <div class="container" id="prehistoric">
-    <h1>Prehistoric</h1>
-    <a href="#">Click here</a> for no reason.
+  <div class="container phase" id="prehistoric">
+    <h1>Prehistoric Phase</h1>
+    <p>You write your first html code</p>
+    <a href="#" class="visit">Click here</a> .
     <hr/>
-A Footer <span class="odometer" id="odometer1">0</span>
+    <div>This is your footer.</div>
   </div>
-  <div class="container" id="hrey" style="background-color: #CECECE;font-family:times">
+  <div class="container phase" id="hrey" style="background-color: #CECECE;font-family:times">
     <h1>Hrey</h1>
     <a href="#">Click here</a> for no reason.
     <hr/>
-A Footer
+A Footer <span class="odometer" id="odometer1">0</span>
 
   </div>
-  <div class="container" id="justno">
+  <div class="container phase" id="justno">
     <h1 style="text-shadow: 2px 2px red;">JustNo <image src="img/hot.gif"/></h1>
     <a href="#">Hyperlink</a>
     <image src="img/tM18j.gif"/>
@@ -106,7 +275,7 @@ A Footer
     <hr/>
 A Footer <span class="odometer" id="odometer2">0</span>
   </div>
-  <div class="container" id="fugly-era">
+  <div class="container phase" id="fugly-era">
     <h1>Fugly Era <image src="img/spinningearth.gif"/></h1>
     <a href="#">Hyperlink</a>
     <blink style="color:#FFF">Horrible blink</blink>
@@ -117,7 +286,7 @@ A Footer <span class="odometer" id="odometer2">0</span>
     <hr/>
     <a href="#">Hyperlink</a> | <a href="#">Hyperlink</a> | <a href="#">Hyperlink</a> | <a href="#">Hyperlink</a> | <a href="#">Hyperlink</a>
   </div>
-  <div class="container" id="table-galore">
+  <div class="container phase" id="table-galore">
     <table width="100%">
       <tr>
         <td style="background-color:#EEEEEE" colspan="3">
@@ -148,7 +317,10 @@ A Footer <span class="odometer" id="odometer2">0</span>
     <hr/>
     <center><small>A Footer</small></center>
   </div>
-  <a href="http://web.archive.org/web/20010602143252/http://www.pets.com:80/">Next ones</a>
+    <div class="container">
+      Visitors <span class="visitors">0</span>
+    </div>
+  <!-- <a href="http://web.archive.org/web/20010602143252/http://www.pets.com:80/">Next ones</a>-->
 </body>
 
 </html>
