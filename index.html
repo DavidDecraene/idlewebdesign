@@ -3,16 +3,24 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <title>Idle webdesign</title>
+  <title>Web Evolution</title>
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/css/bootstrap.min.css" integrity="sha384-9gVQ4dYFwwWSjIDZnLEWnxCjeSWFphJiwGPXr1jddIhOegiu1FwO5qRGvFXOdJZ4" crossorigin="anonymous">
     <link rel="stylesheet" href="css/odometer-theme-minimal.css" >
   <link rel="stylesheet" href="css/odometer-theme-train-station.css" >
 
   <style type="text/css">
-  .container {
+
+  .old-button {
+    border: 1px solid black;
+    padding: 5px 7px;
+  }
+
+  .info {
+    margin-top: 10px;
   }
 
   .phase {
+    padding: 5px;
     margin-top: 15px;
     display: none;
       border-radius: 5px;
@@ -20,11 +28,7 @@
       min-height: 230px;
       margin-bottom: 5px;
   }
-
-  #prehistoric {
-
-  }
-  #prehistoric a {
+  .prehistoric a {
     color: #00F;
     text-decoration: underline;
   }
@@ -132,10 +136,35 @@
           }
         }
 
+
         class Phase {
-          constructor($element) {
+          constructor($element, options) {
             this.$element = $element;
             this.incrementors = [];
+            this.$title = $('h1', $element);
+            this.$log = $('.log', $element);
+            this.data = $.extend(true, { footer: {}}, options);
+            this.footer = new Footer($('.footer', $element), this.data.footer);
+            this.render();
+          }
+
+          restore(json) {
+            if(!json) return;
+          }
+
+          save() {
+            return {
+
+            }
+          }
+
+          render() {
+            this.$element.removeClass();
+            this.$element.addClass('phase');
+            this.$element.addClass(this.data.id);
+            if (this.data.title) {
+              this.$title.text(this.data.title);
+            }
           }
 
           notifyVisitors(count) {
@@ -163,16 +192,27 @@
         class WOMOption {
 
 
-            constructor($element, model) {
+            constructor($parent, model, options) {
+              this.data = $.extend({}, options);
               this.value = new VisitIncrementor();
-              this.$element = $element;
-              $('button', this.$element).click(() => {
+              this.$element = $('<div></div>').appendTo($parent);
+              this.initRender();
+              this.updateCost();
+              this.update = this.value.update.bind(this.value);
+            }
+
+
+            initRender() {
+              $('<span/>').text(this.data.name).appendTo(this.$element);
+              $('<span>: </span>').appendTo(this.$element);
+              this.$button = $('<span class="old-button">+</span>').appendTo(this.$element).click(() => {
                 if(this.value.buy(model, 1))
                 this.updateCost();
               });
-              this.$cost = $('.cost', this.$element);
-              this.updateCost();
-              this.update = this.value.update.bind(this.value);
+              $('<span>: Requires </span>').appendTo(this.$element);
+              this.$cost = $('<span class="cost">10</span>').appendTo(this.$element);
+              $('<span> visitors.</span>').appendTo(this.$element);
+
             }
 
             updateCost() {
@@ -180,21 +220,42 @@
             }
         }
 
+        class Footer {
+          constructor($element, options) {
+            this.$element = $element;
+            this.data = $.extend(true, { }, options);
+            this.$text = $('.text', $element);
+            this.render();
+          }
+
+          render() {
+            this.$text.text(this.data.text);
+          }
+        }
+
         class Prehistory extends Phase {
 
           constructor($element) {
-            super($element);
+            super($element, {
+              id: 'prehistoric',
+              title: 'The start of it all',
+              footer: {
+                text: 'This is your footer. You haven\'t figured out what to write here yet.'
+              }
+            });
             $('.visit', $element).click(() => {
               if(!this.model) { return; }
               this.model.addVisitor();
             });
+
           }
 
           notifyVisitors(count) {
             if(!this.wordOfMouth && count >= 10) {
-              $('.automation', this.$element).show();
-              const $wordOfMouth = $('.word-of-mouth', this.$element);
-              this.wordOfMouth = new WOMOption($wordOfMouth, this.model);
+              const holder = $('.automation', this.$element).show();
+              this.wordOfMouth = new WOMOption(holder, this.model, {
+                name: 'Word of mouth'
+              });
               this.incrementors.push(this.wordOfMouth);
             }
           }
@@ -236,12 +297,25 @@
             if(oldCount !== this.iCount) this.$element.text(this.iCount);
           }
 
+          restore(json) {
+            if(!json) return;
+            this.count = json.count;
+            this.iCount =  Math.floor(this.count);
+          }
+
+          save() {
+            return {
+              count: this.count;
+            };
+          }
+
         }
 
         class Frame {
           constructor(model) {
             this.time = 0;
             this.model =  model;
+            this.cycles = 0;
           }
 
           cycle(timestamp) {
@@ -250,6 +324,9 @@
             if(progress > 1000) {
               this.time = this.time + 1000;
               if (this.model.phase) this.model.phase.update(1);
+              if(!(++this.cycles % 30)) {
+                console.log('should save');
+              }
             }
             window.requestAnimationFrame(this.cycle.bind(this));
           }
@@ -279,6 +356,26 @@
             }
           }
 
+          restore(json) {
+            if(!json) return;
+            const phaseId = json.phase.id;
+            if('prehistoric' === phaseId) {
+              this.phase = new Prehistory($('#phase'));
+              this.phase.model = this;
+              this.phase.restore(json.phase);
+              this.phase.toggle(true);
+            }
+            this.visitors.restore(json.visitors);
+          }
+
+          save() {
+            return {
+              phase : this.phase.save(),
+              renown: this.renown,
+              visitors : this.visitors.save()
+            }
+          }
+
           addPhase(phase) {
             this.phases.push(phase);
             phase.model  = this;
@@ -292,7 +389,7 @@
 
 
 
-        model.addPhase(new Prehistory($('#prehistoric')));
+        model.addPhase(new Prehistory($('#phase')));
         model.addPhase(new HreyPhase($('#hrey')));
         model.addPhase(new JustNoPhase($('#justno')));
         model.addPhase(new FuglyEraPhase($('#fugly-era')));
@@ -307,17 +404,31 @@
 </head>
 
 <body>
-  <div class="container phase" id="prehistoric">
-    <h1>Prehistoric Phase</h1>
-    <p>You write your first html code</p>
-    <a href="#" class="visit">Click here</a> .
-    <div class="automation" style="display:none">
-      <hr  />
-      <h2>Referrals</h2>
-      <div class="word-of-mouth">Word of mouth: <button class="oldButton">+</button> : Requires <span class="cost">10</span> visitors. </div>
+  <div class="container-fluid">
+    <div class="row">
+        <div class="col col-sm-2">
+
+        </div>
+        <div class="col col-sm-8">
+
+          <div id="phase">
+            <h1></h1>
+            <p class="log">You write your first lines of html code</p>
+            <a href="#" class="visit">Click here</a> .
+            <div class="automation" style="display:none">
+              <hr  />
+              <h2>Referrals</h2>
+            </div>
+            <div class="footer">
+              <hr/>
+              <div class="text"></div>
+            </div>
+          </div>
+        </div>
+        <div class="col col-sm-2">
+
+        </div>
     </div>
-    <hr/>
-    <div>This is your footer.</div>
   </div>
   <div class="container phase" id="hrey" style="background-color: #CECECE;font-family:times">
     <h1>Hrey</h1>
@@ -377,9 +488,9 @@ A Footer <span class="odometer" id="odometer2">0</span>
     <hr/>
     <center><small>A Footer</small></center>
   </div>
-    <div class="container">
-      Visitors <span class="visitors">0</span>
-    </div>
+  <div  class="container" id="info">
+      <div>Visitors <span class="visitors">0</span></div>
+  </div>
   <!-- <a href="http://web.archive.org/web/20010602143252/http://www.pets.com:80/">Next ones</a>-->
 </body>
 
