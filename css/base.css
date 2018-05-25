@@ -1,0 +1,85 @@
+
+
+.old-button {
+  border: 1px solid black;
+  padding: 5px 7px;
+  user-select: none;
+}
+
+.research1 .old-button {
+  cursor: pointer;
+}
+
+.background1 {
+  background-color: #CECECE;
+}
+
+.font1 {
+  font-family:times;
+}
+
+.header {
+  min-height: 150px;
+}
+
+#info {
+  margin-top: 30px;
+}
+
+.phase {
+  padding: 5px 15px;
+  margin-top: 15px;
+  display: none;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px 0 rgba(0,0,0,0.16),0 2px 10px 0 rgba(0,0,0,0.12)!important;
+    min-height: 230px;
+    margin-bottom: 5px;
+}
+
+.WOMOption {
+  margin-bottom: 5px;
+}
+.prehistoric a {
+  color: #00F;
+  text-decoration: underline;
+}
+#fugly-era {
+  background-image: url(../img/bg0009.gif) ;
+  color: #000;
+}
+#fugly-era a {
+  color: #00F;
+  text-decoration: underline;
+}
+#justno {
+  font-family: Comic Sans MS, Comic Sans;
+  background-color: #2626FF;
+  color: #FFFF00;
+}
+
+blink {
+  -webkit-animation: 2s linear infinite condemned_blink_effect; // for android
+  animation: 2s linear infinite condemned_blink_effect;
+}
+@-webkit-keyframes condemned_blink_effect { // for android
+  0% {
+      visibility: hidden;
+  }
+  50% {
+      visibility: hidden;
+  }
+  100% {
+      visibility: visible;
+  }
+}
+@keyframes condemned_blink_effect {
+  0% {
+      visibility: hidden;
+  }
+  50% {
+      visibility: hidden;
+  }
+  100% {
+      visibility: visible;
+  }
+}

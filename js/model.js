@@ -2,103 +2,124 @@
 (function() {
   const webevo = window.webevo;
 
+  webevo.ResearchService = class {
+    constructor(model) {
+      this.model = model;
+      this.unlocked = [];
+      this.unlockable = [];
+      this.locked = [];
+      this.map = { };
+      webevo.data.research.forEach(r => {
+        this.map[r.id] = r;
+        this.locked.push(r);
+      });
+     this.hidden = true;
+    }
+
+    unlock(id) {
+
+    }
+
+    notifyCounter(counter) {
+      if (this.hidden ) {
+        if(counter.iCount >= 100) {
+          this.hidden = false;
+          $('.research').show();
+        } else return;
+      }
+      // Calculate unlockables...
+      this.locked = this.locked.filter(l => {
+        if (l.cost.value <= counter.iCount) {
+          this.unlockable.push(l); // create a interface element
+          // remove it
+          return false;
+        }
+        return true;
+      });
+    }
+  }
+
   webevo.Prehistory = class extends webevo.Phase {
 
-    constructor($element) {
-      super($element, {
-        id: 'prehistoric',
-        title: 'The start of it all',
-        footer: {
-          text: 'This is your footer. You haven\'t figured out what to write here yet.'
-        }
-      });
+    constructor($element, model) {
+      super($element, webevo.data.phases[0]);
+      this.model = model;
       $('.visit', $element).click(() => {
         if(!this.model) { return; }
-        this.model.addVisitor();
+        this.model.addCount(this.model.visitors, 1);
       });
-
+      const holder = $('.automation', this.$element);
+      this.incrementors.push(new webevo.WOMOption(holder, this.model, {
+        counter: this.model.visitors,
+        name: 'Word of mouth',
+        parent: holder
+      }));
+      this.incrementors.push(new webevo.WOMOption(holder, this.model, {
+        counter: this.model.visitors,
+        targetCounter: this.model.income,
+        costBase: 100,
+        rate: 0.1,
+        name: 'Offer Web Design Services',
+        parent: holder
+      }));
     }
 
-    notifyVisitors(count) {
-      if(!this.wordOfMouth && count >= 10) {
-        const holder = $('.automation', this.$element).show();
-        this.wordOfMouth = new webevo.WOMOption(holder, this.model, {
-          name: 'Word of mouth'
-        });
-        this.incrementors.push(this.wordOfMouth);
-      }
+    notifyCounter(counter) {
+      this.incrementors.forEach(i => i.notifyCounter(counter));
     }
 
-  };
-
-  webevo.HreyPhase = class extends webevo.Phase {
-    constructor($element) {
-      super($element);
-    }
-  };
-
-  webevo.JustNoPhase = class extends webevo.Phase {
-    constructor($element) {
-      super($element);
-    }
-  };
-
-  webevo.FuglyEraPhase = class extends webevo.Phase {
-    constructor($element) {
-      super($element);
-    }
-  };
-
-  webevo.TableGalorePhase = class extends webevo.Phase {
-    constructor($element) {
-      super($element);
-    }
   };
 
   webevo.Model = class {
     constructor() {
-      this.phases = [];
+      // this.phases = [];
       this.phase = undefined;
-      this.visitors = new webevo.Visitors();
+      this.visitors = new webevo.Counter($('.visitors'), { name: 'visitors'});
+      this.visitors.listeners.push(this);
+      this.income = new webevo.Counter($('.income'), { name: 'income'});
+      this.income.listeners.push(this);
       this.renown = 0;
       this.frame = new webevo.Frame(this);
+      this.researchService = new webevo.ResearchService(this);
     }
 
-    addVisitor(count = 1) {
-      const oldVal = this.visitors.iCount;
-      this.visitors.add(count);
-      if(oldVal !== this.visitors.iCount) {
-        if( this.phase) { this.phase.notifyVisitors(this.visitors.count); }
-
+    notifyCounter(counter) {
+      if( this.phase) { this.phase.notifyCounter(counter); }
+      if(counter === this.income) {
+        this.researchService.notifyCounter(counter);
       }
     }
 
-    restore(json) {
-      if(!json) return;
-      const phaseId = json.phase.id;
-      if('prehistoric' === phaseId) {
-        this.phase = new Prehistory($('#phase'));
-        this.phase.model = this;
+    addCount(counter, count = 1) {
+      counter.add(count);
+    }
+
+    init(json) {
+      this.phase = new webevo.Prehistory($('#phase'), this);
+      if(json && json.phase) {
         this.phase.restore(json.phase);
-        this.phase.toggle(true);
       }
+      this.phase.toggle(true);
+    }
+
+    restore() {
+      const sData = localStorage.getItem('webevo');
+      if(!sData) { this.init(); return; }
+      const json = JSON.parse(sData);
+      console.log(json);
+      if(!json.phase) { this.init();  return; }
+      this.init(json);
       this.visitors.restore(json.visitors);
+      this.income.restore(json.income);
     }
 
     save() {
       return {
         phase : this.phase.save(),
         renown: this.renown,
-        visitors : this.visitors.save()
+        visitors : this.visitors.save(),
+        income: this.income.save()
       }
-    }
-
-    addPhase(phase) {
-      this.phases.push(phase);
-      phase.model  = this;
-      const currentPhase = this.phases.length === 1;
-      phase.toggle(currentPhase);
-      if (currentPhase) { this.phase = phase; }
     }
 
   };

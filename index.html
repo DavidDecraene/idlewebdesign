@@ -3,77 +3,11 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <title>Web Evolution</title>
+  <title>Idle Web Evolution</title>
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/css/bootstrap.min.css" integrity="sha384-9gVQ4dYFwwWSjIDZnLEWnxCjeSWFphJiwGPXr1jddIhOegiu1FwO5qRGvFXOdJZ4" crossorigin="anonymous">
     <link rel="stylesheet" href="css/odometer-theme-minimal.css" >
   <link rel="stylesheet" href="css/odometer-theme-train-station.css" >
-
-  <style type="text/css">
-
-  .old-button {
-    border: 1px solid black;
-    padding: 5px 7px;
-  }
-
-  .info {
-    margin-top: 10px;
-  }
-
-  .phase {
-    padding: 5px;
-    margin-top: 15px;
-    display: none;
-      border-radius: 5px;
-      box-shadow: 0 2px 4px 0 rgba(0,0,0,0.16),0 2px 10px 0 rgba(0,0,0,0.12)!important;
-      min-height: 230px;
-      margin-bottom: 5px;
-  }
-  .prehistoric a {
-    color: #00F;
-    text-decoration: underline;
-  }
-  #fugly-era {
-    background-image: url(img/bg0009.gif) ;
-    color: #000;
-  }
-  #fugly-era a {
-    color: #00F;
-    text-decoration: underline;
-  }
-  #justno {
-    font-family: Comic Sans MS, Comic Sans;
-    background-color: #2626FF;
-    color: #FFFF00;
-  }
-
-  blink {
-    -webkit-animation: 2s linear infinite condemned_blink_effect; // for android
-    animation: 2s linear infinite condemned_blink_effect;
-}
-@-webkit-keyframes condemned_blink_effect { // for android
-    0% {
-        visibility: hidden;
-    }
-    50% {
-        visibility: hidden;
-    }
-    100% {
-        visibility: visible;
-    }
-}
-@keyframes condemned_blink_effect {
-    0% {
-        visibility: hidden;
-    }
-    50% {
-        visibility: hidden;
-    }
-    100% {
-        visibility: visible;
-    }
-}
-  </style>
-
+<link rel="stylesheet" href="css/base.css" >
     <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.0/umd/popper.min.js" integrity="sha384-cs/chFZiN24E4KMATLdqdvsezGxaGsi4hLGOzlXwp5UZB1LY//20VyM2taTB4QvJ" crossorigin="anonymous"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/js/bootstrap.min.js" integrity="sha384-uefMccjFJAIv6A+rW+L4AHf99KvxDjWSu1z9VI8SKNVmz4sk7buKt/6v9KI65qnm" crossorigin="anonymous"></script>
@@ -82,6 +16,7 @@
   </script>
     <script src="js/odometer.min.js"></script>
     <script src="js/base.js"></script>
+    <script src="js/data.js"></script>
     <script src="js/model.js"></script>
     <script type="text/javascript">
     $(document).ready(function() {
@@ -96,11 +31,13 @@
 
 
         const model = new webevo.Model();
-        model.addPhase(new webevo.Prehistory($('#phase')));
+        model.restore();
+        // model.addPhase(new webevo.Prehistory($('#phase')));
+        /**
         model.addPhase(new webevo.HreyPhase($('#hrey')));
         model.addPhase(new webevo.JustNoPhase($('#justno')));
         model.addPhase(new webevo.FuglyEraPhase($('#fugly-era')));
-        model.addPhase(new webevo.TableGalorePhase($('#table-galore')));
+        model.addPhase(new webevo.TableGalorePhase($('#table-galore'))); */
         model.frame.start();
       })();
 
@@ -111,33 +48,23 @@
 </head>
 
 <body>
+  <div class="header container-fluid">
+
+  </div>
   <div class="container-fluid">
     <div class="row">
         <div class="col col-sm-2">
 
         </div>
         <div class="col col-sm-8">
-
-          <div id="phase">
-            <h1></h1>
-            <p class="log">You write your first lines of html code</p>
-            <a href="#" class="visit">Click here</a> .
-            <div class="automation" style="display:none">
-              <hr  />
-              <h2>Referrals</h2>
-            </div>
-            <div class="footer">
-              <hr/>
-              <div class="text"></div>
-            </div>
-          </div>
+          <div id="phase"></div>
         </div>
         <div class="col col-sm-2">
 
         </div>
     </div>
   </div>
-  <div class="container phase" id="hrey" style="background-color: #CECECE;font-family:times">
+  <div class="container phase background1 font1">
     <h1>Everything must be grey</h1>
     <a href="#">Click here</a> for no reason.
     <hr/>
@@ -196,6 +123,7 @@ A Footer <span class="odometer" id="odometer2">0</span>
   </div>
   <div  class="container" id="info">
       <div>Visitors <span class="visitors">0</span></div>
+      <div>Income <span class="income">0</span></div>
   </div>
   <!-- <a href="http://web.archive.org/web/20010602143252/http://www.pets.com:80/">Next ones</a>-->
 </body>
