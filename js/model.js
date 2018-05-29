@@ -2,22 +2,79 @@
 (function() {
   const webevo = window.webevo;
 
+  webevo.ResearchNode = class {
+    get id() {
+      return this.definition.id;
+    }
+
+    constructor(definition) {
+      this.enables = [];
+      this.requires = [];
+      this.locked=  true;
+    }
+  };
+
   webevo.ResearchService = class {
     constructor(model) {
       this.model = model;
+      this.onUnlock = new Rx.Subject();
+
       this.unlocked = [];
       this.unlockable = [];
       this.locked = [];
+      this.all = [];
       this.map = { };
       webevo.data.research.forEach(r => {
-        this.map[r.id] = r;
-        this.locked.push(r);
+        this.map[r.id] = new webevo.ResearchNode(r);
+        this.all.push(r);
       });
+      this.all.forEach(n => {
+        if(!n.definition.requirements) {
+          this.unlockable.push(n);
+        } else {
+          n.definition.requirements.forEach(req => {
+            const other = this.map[req];
+            if(!req) { throw new Error('No such research defined ' + req ); }
+            other.enables.push(n);
+            n.requires.push(other);
+          });
+        }
+      });
+
      this.hidden = true;
     }
 
-    unlock(id) {
+    save() {
+      return {
+        unlocked: this.unlocked.slice()
+      };
+    }
 
+    restore(json) {
+      if(!json) { return; }
+      if (json.unlocked) {
+        json.unlocked.forEach(u => this.unlock(u));
+      }
+    }
+
+    unlock(id) {
+      const i = this.unlockable.findIndex(u => u.id === id);
+      if(i < 0) { return; }
+      const node = this.unlockable[i];
+      const emit = node.locked;
+      node.locked = false;
+      this.unlockable.splice(i, 1);
+      node.enables.forEach(other => {
+        const hasLocked = other.requires.find(u => u.locked);
+        if(!hasLocked) {
+          this.unlockable.push(other);
+        }
+      });
+      if(emit) {
+        this.unlocked.push(node.id);
+        this.onUnlock.next(node);
+        // NOTIFY progress
+      }
     }
 
     notifyCounter(counter) {
@@ -37,7 +94,7 @@
         return true;
       });
     }
-  }
+  };
 
   webevo.Prehistory = class extends webevo.Phase {
 
@@ -111,6 +168,7 @@
       this.init(json);
       this.visitors.restore(json.visitors);
       this.income.restore(json.income);
+      this.researchService.restore(json.research);
     }
 
     save() {
@@ -118,8 +176,9 @@
         phase : this.phase.save(),
         renown: this.renown,
         visitors : this.visitors.save(),
-        income: this.income.save()
-      }
+        income: this.income.save(),
+        research : this.researchService.save()
+      };
     }
 
   };
