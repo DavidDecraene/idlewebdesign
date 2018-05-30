@@ -123,26 +123,62 @@
     constructor($element, options) {
       this.data = options;
       this.$element = $element ;
-      this.count = 0;
-      this.iCount = 0;
       this.listeners = [];
+      this.round = options.round ? options.round : 0;
+      this.reset();
+    }
+
+    updateText() {
+      if (this.round) {
+        const digits = Math.floor(Math.log10(this.count));
+        if(digits <= this.round) {
+          this.$element.text(this.count.toFixed(this.round));
+          return;
+        }
+      }
+      this.$element.text(this.count.toFixed(0));
+
     }
 
     add(count) {
+      if(!count) { return false; }
+      // console.log(count);
+      if(count < 0) { return this.remove(-count); }
       this.count += count;
       const oldCount = this.iCount;
       this.iCount = Math.floor(this.count);
       if (oldCount !== this.iCount) {
-        this.$element.text(this.iCount);
+        this.updateText();
         this.listeners.forEach(l => l.notifyCounter(this));
       }
+      return true;
+    }
+
+    remove(count) {
+      if (!count) { return false; }
+      if (count < 0) { count *= -1; }
+      if (this.count < count) { return false; }
+      this.count -= count;
+      const oldCount = this.iCount;
+      this.iCount = Math.floor(this.count);
+      if (oldCount !== this.iCount) {
+        this.updateText();
+        this.listeners.forEach(l => l.notifyCounter(this));
+      }
+      return true;
+
+    }
+
+    reset() {
+      this.count = 0;
+      this.iCount = 0;
     }
 
     restore(json) {
       if (!json) return;
       this.count = json.count;
       this.iCount = Math.floor(this.count);
-      this.$element.text(this.iCount);
+      this.updateText();
     }
 
     save() {
@@ -218,7 +254,7 @@
       this.data = $.extend({}, options);
       this.model = model;
       this.value = new webevo.Incrementor(this.data);
-      this.$element = $('<div class="WOMOption"></div>').appendTo($parent);
+      this.$element = $('<div class="WOMOption"></div>').hide().appendTo($parent);
       this.initRender();
       this.updateCost();
       this.update = this.value.update.bind(this.value);
@@ -226,11 +262,13 @@
 
     show() {
       if(this.data.parent) this.data.parent.show();
+      this.$element.show();
     }
 
     notifyCounter(counter) {
       if(this.counter !== counter) { return; }
-      if (!this.value.value && counter.value >= this.value.costBase) {
+      // console.log(counter, 'noififed', this.value.value, counter.count, this.value.costBase);
+      if (!this.value.value && counter.count >= this.value.costBase) {
         this.show();
       }
     }

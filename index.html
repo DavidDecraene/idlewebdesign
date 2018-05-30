@@ -33,13 +33,13 @@
 
         const model = new webevo.Model();
         model.restore();
-        // model.addPhase(new webevo.Prehistory($('#phase')));
-        /**
-        model.addPhase(new webevo.HreyPhase($('#hrey')));
-        model.addPhase(new webevo.JustNoPhase($('#justno')));
-        model.addPhase(new webevo.FuglyEraPhase($('#fugly-era')));
-        model.addPhase(new webevo.TableGalorePhase($('#table-galore'))); */
         model.frame.start();
+
+        $('#reset').click(() => {
+          if ( confirm('Hard Reset: Resets everything (cannot be undone)?')) {
+            model.reset();
+          }
+        });
       })();
 
     });
@@ -50,7 +50,10 @@
 
 <body>
   <div class="header container-fluid">
-
+    <nav class="navbar navbar-expand-lg  navbar-light bg-light">
+      <a class="navbar-brand" href="#">Idle Web Evolution</a>
+      <button id="reset" class="btn btn-outline-success ml-auto">Reset</button>
+    </nav>
   </div>
   <div class="container-fluid">
     <div class="row">

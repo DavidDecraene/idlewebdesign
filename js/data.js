@@ -29,21 +29,23 @@
       {
         id: 'cursors', phase: 'prehistoric',
         description: 'Unlock the power of customizable cursors.',
-        css: 'research1',
+        actions: { css: 'research1' },
         cost: { value : 100, type: 'income'}
       },
       {
         id: 'background1', phase: 'prehistoric',
         description: 'Lean about css background-color',
-        css: 'background1',
-        title: 'Everything must be grey',
+        actions: {
+          css: 'background1',
+          title: 'Everything must be grey'
+        },
         cost: { value : 100, type: 'income'},
         requirements: ['cursors']
       },
       {
         id: 'font1', phase: 'prehistoric',
         description: 'Discover the times new roman font-family',
-        css: 'background1',
+        actions: { css: 'background1' },
         cost: { value : 100, type: 'income'},
         requirements: ['cursors']
       }

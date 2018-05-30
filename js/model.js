@@ -7,7 +7,8 @@
       return this.definition.id;
     }
 
-    constructor(definition) {
+    constructor(d) {
+      this.definition = d;
       this.enables = [];
       this.requires = [];
       this.locked=  true;
@@ -25,8 +26,8 @@
       this.all = [];
       this.map = { };
       webevo.data.research.forEach(r => {
-        this.map[r.id] = new webevo.ResearchNode(r);
-        this.all.push(r);
+        const node = this.map[r.id] = new webevo.ResearchNode(r);
+        this.all.push(node);
       });
       this.all.forEach(n => {
         if(!n.definition.requirements) {
@@ -96,6 +97,33 @@
     }
   };
 
+  webevo.ResearchPanel = class {
+    constructor(node, model, $parent) {
+      this.node = node;
+      this.model = model;
+      this.$parent = $parent;
+      console.log(node);
+      const title = node.definition.name ? node.definition.name : node.id;
+      $('<div class="title"></div>').text(title).appendTo($parent);
+      if(node.definition.description){
+        $('<div class="description"></div>').text(node.definition.description).appendTo($parent);
+      }
+      const $costNode = $('<div class="cost"/>').appendTo($parent);
+      const costString = node.definition.cost.value + ' ' + node.definition.cost.type;
+      $('<span>Cost:<span>').appendTo($costNode);
+      $('<span><span>').text(costString).appendTo($costNode);
+      this.$button = $('<span class="old-button">+</span>').appendTo($costNode).click(() => {
+
+      });
+    }
+
+    unlock() {
+      if (this.model.removeCount(this.model.income, this.node.definition.cost.value)) {
+        this.model.researchService.unlock(this.node.id);
+      }
+    }
+  };
+
   webevo.Prehistory = class extends webevo.Phase {
 
     constructor($element, model) {
@@ -105,7 +133,8 @@
         if(!this.model) { return; }
         this.model.addCount(this.model.visitors, 1);
       });
-      const holder = $('.automation', this.$element);
+
+      const holder = this.$automation = $('.automation', this.$element);
       this.incrementors.push(new webevo.WOMOption(holder, this.model, {
         counter: this.model.visitors,
         name: 'Word of mouth',
@@ -119,6 +148,20 @@
         name: 'Offer Web Design Services',
         parent: holder
       }));
+      const research = this.$research = $('<ul/>').appendTo($('.research'));
+      this.updateResearch();
+    }
+
+    updateResearch() {
+      this.$research.empty();
+      this.model.researchService.unlockable.forEach((n) => {
+        new webevo.ResearchPanel(n, this.model, $('<li class="research-panel"/>').appendTo(this.$research));
+      });
+    }
+
+    unlockedResearch(r) {
+      if(!r) { return; }
+      this.updateResearch();
     }
 
     notifyCounter(counter) {
@@ -133,11 +176,23 @@
       this.phase = undefined;
       this.visitors = new webevo.Counter($('.visitors'), { name: 'visitors'});
       this.visitors.listeners.push(this);
-      this.income = new webevo.Counter($('.income'), { name: 'income'});
+      this.income = new webevo.Counter($('.income'), { name: 'income', round: 1});
       this.income.listeners.push(this);
       this.renown = 0;
       this.frame = new webevo.Frame(this);
       this.researchService = new webevo.ResearchService(this);
+      this.researchService.onUnlock.subscribe((r) => {
+        this.unlockedResearch(r);
+      });
+    }
+
+    reset() {
+      localStorage.removeItem('webevo');
+      location.reload();
+    }
+
+    unlockedResearch(r) {
+
     }
 
     notifyCounter(counter) {
@@ -148,7 +203,16 @@
     }
 
     addCount(counter, count = 1) {
+      if(!count || !counter) { return; }
+      if(count < 0){
+        return this.removeCount(counter, count);
+      }
       counter.add(count);
+    }
+
+    removeCount(counter, count = 1) {
+      if(!count || !counter) { return; }
+      counter.remove(count);
     }
 
     init(json) {
@@ -162,13 +226,18 @@
     restore() {
       const sData = localStorage.getItem('webevo');
       if(!sData) { this.init(); return; }
-      const json = JSON.parse(sData);
-      console.log(json);
-      if(!json.phase) { this.init();  return; }
-      this.init(json);
-      this.visitors.restore(json.visitors);
-      this.income.restore(json.income);
-      this.researchService.restore(json.research);
+      try {
+        const json = JSON.parse(sData);
+        console.log(json);
+        if(!json.phase) { this.init();  return; }
+        this.init(json);
+        this.visitors.restore(json.visitors);
+        this.income.restore(json.income);
+        this.researchService.restore(json.research);
+      } catch(e ) {
+        console.error(e);
+      }
+
     }
 
     save() {

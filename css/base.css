@@ -6,6 +6,10 @@
   user-select: none;
 }
 
+.research-panel .cost span {
+  margin-right: 5px;
+}
+
 .research1 .old-button {
   cursor: pointer;
 }
