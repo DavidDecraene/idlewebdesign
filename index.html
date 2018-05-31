@@ -21,12 +21,6 @@
     <script src="js/model.js"></script>
     <script type="text/javascript">
     $(document).ready(function() {
-      var odometer1 = new Odometer({ el: $('#odometer1')[0], theme: 'minimal', value : '0' });
-      odometer1.render();
-      odometer1.update(10);
-      var odometer = new Odometer({ el: $('#odometer2')[0], theme: 'train-station', value : '0' });
-      odometer.render();
-      odometer.update(1230000);
 
       (function() {
 
@@ -61,38 +55,12 @@
 
         </div>
         <div class="col col-sm-8">
-          <div id="phase"></div>
+          <div id="phase" ></div>
         </div>
         <div class="col col-sm-2">
 
         </div>
     </div>
-  </div>
-  <div class="container phase background1 font1">
-    <h1>Everything must be grey</h1>
-    <a href="#">Click here</a> for no reason.
-    <hr/>
-A Footer <span class="odometer" id="odometer1">0</span>
-
-  </div>
-  <div class="container phase" id="justno">
-    <h1 style="text-shadow: 2px 2px red;">JustNo <image src="img/hot.gif"/></h1>
-    <a href="#">Hyperlink</a>
-    <image src="img/tM18j.gif"/>
-
-    <hr/>
-A Footer <span class="odometer" id="odometer2">0</span>
-  </div>
-  <div class="container phase" id="fugly-era">
-    <h1>Fugly Era <image src="img/spinningearth.gif"/></h1>
-    <a href="#">Hyperlink</a>
-    <blink style="color:#FFF">Horrible blink</blink>
-    <image src="img/ns_logo.gif"/>
-    <image src="img/ie_logo.gif"/>
-    <image src="img/noframes.gif"/>
-    <image src="img/notepad.gif"/>
-    <hr/>
-    <a href="#">Hyperlink</a> | <a href="#">Hyperlink</a> | <a href="#">Hyperlink</a> | <a href="#">Hyperlink</a> | <a href="#">Hyperlink</a>
   </div>
   <div class="container phase" id="table-galore">
     <table width="100%">
@@ -126,8 +94,8 @@ A Footer <span class="odometer" id="odometer2">0</span>
     <center><small>A Footer</small></center>
   </div>
   <div  class="container" id="info">
-      <div>Visitors <span class="visitors">0</span></div>
-      <div>Income <span class="income">0</span></div>
+      <div class="counter"><span class="title">Visitors</span><span class="visitors">0</span></div>
+      <div class="counter"><span class="title">Income</span> <span class="income">0</span></div>
   </div>
   <!-- <a href="http://web.archive.org/web/20010602143252/http://www.pets.com:80/">Next ones</a>-->
 </body>

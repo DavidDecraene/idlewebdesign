@@ -13,6 +13,55 @@
       this.requires = [];
       this.locked=  true;
     }
+
+    unlock(model) {
+      if(!this.locked) { return; }
+      this.locked = false;
+      const actions = this.definition.actions;
+      if(actions) {
+        if(actions.addClass) {
+          model.phase.$element.addClass(actions.addClass);
+        }
+        if(actions.removeClass) {
+          model.phase.$element.removeClass(actions.removeClass);
+        }
+        if(actions.title) {
+          model.phase.title = actions.title;
+        }
+        if(actions.odometer) {
+          model.visitors.odometer(actions.odometer);
+          model.income.odometer(actions.odometer);
+        }
+        if(actions.footer) {
+          model.phase.footer.render(actions.footer);
+          $('#info').appendTo(model.phase.footer.$element);
+        }
+        if(actions.addIncome) {
+          model.income.rate += actions.addIncome;
+        }
+        if(actions.gif) {
+          if(actions.gif.title) {
+            if(model.phase.$titleGif) model.phase.$titleGif.remove();
+            model.phase.$titleGif = $('<img/>').attr('src', actions.gif.title).appendTo(  model.phase.$titleWrapper);
+          }
+          if(actions.gif.body) {
+            if(model.phase.$bodyGif) model.phase.$bodyGif.remove();
+            model.phase.$bodyGif = $('<img/>').attr('src', actions.gif.body)
+            .appendTo(  model.phase.$body);
+          }
+        }
+        if(actions.blink !== undefined) {
+          if(actions.blink) {
+            $('<blink/>').text(actions.blink).appendTo(model.phase.$body);
+          } else {
+            $('blink').remove();
+          }
+        }
+        if(actions.addIcon) {
+          $('<img/>').attr('src', actions.addIcon).appendTo(model.phase.$icons);
+        }
+      }
+    }
   };
 
   webevo.ResearchService = class {
@@ -63,7 +112,7 @@
       if(i < 0) { return; }
       const node = this.unlockable[i];
       const emit = node.locked;
-      node.locked = false;
+      node.unlock(this.model);
       this.unlockable.splice(i, 1);
       node.enables.forEach(other => {
         const hasLocked = other.requires.find(u => u.locked);
@@ -73,7 +122,7 @@
       });
       if(emit) {
         this.unlocked.push(node.id);
-        this.onUnlock.next(node);
+        this.onUnlock.onNext(node);
         // NOTIFY progress
       }
     }
@@ -102,7 +151,6 @@
       this.node = node;
       this.model = model;
       this.$parent = $parent;
-      console.log(node);
       const title = node.definition.name ? node.definition.name : node.id;
       $('<div class="title"></div>').text(title).appendTo($parent);
       if(node.definition.description){
@@ -112,13 +160,14 @@
       const costString = node.definition.cost.value + ' ' + node.definition.cost.type;
       $('<span>Cost:<span>').appendTo($costNode);
       $('<span><span>').text(costString).appendTo($costNode);
-      this.$button = $('<span class="old-button">+</span>').appendTo($costNode).click(() => {
-
+      this.$button = $('<button>+</button>').appendTo($costNode).click(() => {
+        this.unlock();
       });
     }
 
     unlock() {
       if (this.model.removeCount(this.model.income, this.node.definition.cost.value)) {
+        // console.log(this.model.income, this.node.definition.cost.value);
         this.model.researchService.unlock(this.node.id);
       }
     }
@@ -192,7 +241,7 @@
     }
 
     unlockedResearch(r) {
-
+        if( this.phase) { this.phase.unlockedResearch(r); }
     }
 
     notifyCounter(counter) {
@@ -212,7 +261,7 @@
 
     removeCount(counter, count = 1) {
       if(!count || !counter) { return; }
-      counter.remove(count);
+      return counter.remove(count);
     }
 
     init(json) {

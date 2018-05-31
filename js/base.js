@@ -48,13 +48,25 @@
   };
 
   webevo.Phase = class {
+    get title() {
+      return this.$title.text();
+    }
+
+    set title(value) {
+      this.$title.text(value);
+    }
+
     constructor($element, options) {
       this.$element = $element;
       this.incrementors = [];
       if (options && options.template) {
         $(options.template).appendTo(this.$element);
       }
-      this.$title = $('h1', $element);
+      this.$titleWrapper = $('h1', $element);
+      this.$title = $('<span/>').appendTo(this.$titleWrapper);
+      this.title = "The start of it all";
+      this.$body = $('.body', $element);
+      this.$icons = $('.icons', $element);
       this.$log = $('.log', $element);
       this.data = $.extend(true, {
         footer: {}
@@ -88,6 +100,7 @@
       this.$element.removeClass();
       this.$element.addClass('phase');
       this.$element.addClass(this.data.id);
+      this.$element.addClass('button1');
     }
 
     notifyCounter(counter) {
@@ -128,10 +141,20 @@
       this.reset();
     }
 
+    odometer(theme) {
+      if(this.$odometer) {
+        const $parent = this.$element.parent();
+        this.$element.remove();
+        this.$element = $('<span/>').appendTo($parent);
+      }
+      this.$odometer = new Odometer({ el: this.$element[0], theme: theme });
+      this.$odometer.render();
+    }
+
     updateText() {
       if (this.round) {
         const digits = Math.floor(Math.log10(this.count));
-        if(digits <= this.round) {
+        if(digits < this.round) {
           this.$element.text(this.count.toFixed(this.round));
           return;
         }
@@ -295,7 +318,7 @@
     initRender() {
       $('<span/>').text(this.data.name).appendTo(this.$element);
       $('<span>: </span>').appendTo(this.$element);
-      this.$button = $('<span class="old-button">+</span>').appendTo(this.$element).click(() => {
+      this.$button = $('<button>+</button>').appendTo(this.$element).click(() => {
         if (this.value.buy(this.model, 1))
           this.updateCost();
       });

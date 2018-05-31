@@ -1,16 +1,30 @@
 
 
-.old-button {
+.button1 button {
   border: 1px solid black;
   padding: 5px 7px;
   user-select: none;
+  background: transparent;
+  color: inherit;
+}
+
+.footer-links {
+  display: none;
+}
+
+.button2 button {
+  padding: 0px 15px;
+}
+
+.button2 button:hover {
+  background-color: #dcdcdc;
 }
 
 .research-panel .cost span {
   margin-right: 5px;
 }
 
-.research1 .old-button {
+.research1 button {
   cursor: pointer;
 }
 
@@ -18,8 +32,40 @@
   background-color: #CECECE;
 }
 
+.background2 {
+  background-color: #2626FF;
+  color: #FFFF00;
+}
+.background2 a, .background2 a:hover {
+  color: #007bdd;
+}
+.background2 a:visited {
+  color: #007bff;
+}
+
+.background3 {
+  background-image: url(../img/bg0009.gif) ;
+  color: #dcdcdc;
+
+}
+
+.background3  .footer-links {
+  display: block;
+}
+
+.background3  hr {
+  background-color: #FFF;
+}
+
 .font1 {
   font-family:times;
+}
+.font2 {
+  font-family: Comic Sans MS, Comic Sans;
+}
+
+.text-shadows h1 {
+  text-shadow: 2px 2px red;
 }
 
 .header {
@@ -40,6 +86,12 @@
     margin-bottom: 5px;
 }
 
+.counter .title {
+  margin-right: 5px;
+  padding: 5px 0px;
+  vertical-align: middle;
+}
+
 .WOMOption {
   margin-bottom: 5px;
 }
@@ -47,23 +99,12 @@
   color: #00F;
   text-decoration: underline;
 }
-#fugly-era {
-  background-image: url(../img/bg0009.gif) ;
-  color: #000;
-}
-#fugly-era a {
-  color: #00F;
-  text-decoration: underline;
-}
-#justno {
-  font-family: Comic Sans MS, Comic Sans;
-  background-color: #2626FF;
-  color: #FFFF00;
-}
 
 blink {
   -webkit-animation: 2s linear infinite condemned_blink_effect; // for android
   animation: 2s linear infinite condemned_blink_effect;
+  display: block;
+  margin: 5px;
 }
 @-webkit-keyframes condemned_blink_effect { // for android
   0% {
